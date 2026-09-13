@@ -40,7 +40,7 @@ Traektoriya makroqadam ichidagi to'rtta tugun bo'yicha trapetsiya formulasi bila
 ## O'rnatish
 
 ```bash
-git clone https://github.com/<foydalanuvchi>/DustVel.git
+git clone https://github.com/shafiyevt/DustVel.git
 cd DustVel
 pip install -r requirements.txt
 ```
