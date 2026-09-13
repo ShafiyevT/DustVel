@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dustvel"
+version = "1.0.0"
+description = "Chang zarrachalarining atmosferadagi harakat tezliklarini hisoblovchi dasturiy vosita"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+  {name = "Bobojonova M.A."},
+  {name = "Shafiyev T.R."}
+]
+dependencies = ["numpy>=1.21", "matplotlib>=3.5"]
+
+[project.scripts]
+dustvel = "dustvel.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["dustvel*"]
