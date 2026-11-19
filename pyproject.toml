@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dustvel"
-version = "1.0.0"
+version = "2.0.0"
 description = "Chang zarrachalarining atmosferadagi harakat tezliklarini hisoblovchi dasturiy vosita"
 readme = "README.md"
 requires-python = ">=3.8"

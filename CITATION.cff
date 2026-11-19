@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "Agar ushbu dasturdan foydalansangiz, iltimos, quyidagicha iqtibos keltiring."
+type: software
+title: "DustVel: chang zarrachalarining atmosferadagi harakat tezliklarini hisoblovchi dasturiy vosita"
+version: 2.0.0
+authors:
+  - family-names: Bobojonova
+    given-names: Madina
+    affiliation: "Buxoro davlat universiteti"
+  - family-names: Shafiyev
+    given-names: Tursun
+    affiliation: "Buxoro davlat universiteti"
+license: MIT
+repository-code: "https://github.com/ShafiyevT/DustVel"
+abstract: >-
+  Chang zarrachalarining shamol oqimidagi harakat tezliklari, cho'kish tezligi va
+  traektoriyasini Reynolds soniga bog'liq aerodinamik qarshilik bilan hisoblaydi.
+  Qattiq tizim Krank-Nikolson va BDF2 kichik qadamlari bilan ikkinchi tartibli
+  aniqlikda yechiladi.
+keywords:
+  - chang zarrachalari
+  - cho'kish tezligi
+  - qattiq differensial tenglamalar
+  - BDF2
+  - shamol eroziyasi

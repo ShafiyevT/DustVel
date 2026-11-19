@@ -8,7 +8,8 @@ from matplotlib.widgets import Slider, Button, RadioButtons, CheckButtons
 from .core import Fraksiya, Muhit, Hisoblagich
 from . import STANDART_FRAKSIYALAR, __version__
 
-RANG = {"PM2.5": "#1f6fb2", "PM10": "#2c7a4b", "Yirik (50 um)": "#c0392b"}
+RANG_ROYXAT = ["#1f6fb2", "#2c7a4b", "#d77a3a", "#8e44ad", "#c0392b"]
+RANG = {f.nom: RANG_ROYXAT[i % 5] for i, f in enumerate(STANDART_FRAKSIYALAR)}
 
 
 class Oyna:
@@ -51,25 +52,28 @@ class Oyna:
                           "harorat\n$T$, °C", -10.0, 45.0, valinit=20.0, valfmt="%.0f",
                           color="#d77a3a")
         self.s_dt = Slider(self._ax([0.055, 0.662, 0.175, 0.020]),
-                           "qadam\n$\\log_{10}\\Delta t$", -4.0, -1.0, valinit=-3.0,
+                           "qadam\n$\\log_{10}\\Delta t$", -4.0, -0.5, valinit=-2.0,
                            valfmt="%.1f", color="#8e44ad")
 
-        self.fig.text(0.020, 0.624, "FRAKSIYALAR", fontsize=9.5,
+        self.fig.text(0.020, 0.628, "FRAKSIYALAR", fontsize=9.5,
                       fontweight="bold", color="#14507d")
-        ax_ch = self._ax([0.030, 0.512, 0.200, 0.100])
+        ax_ch = self._ax([0.030, 0.505, 0.200, 0.115])
         ax_ch.set_facecolor("#fbfcfd")
         self.chk = CheckButtons(ax_ch, [f.nom for f in STANDART_FRAKSIYALAR],
-                                [True, True, True])
+                                [True] * len(STANDART_FRAKSIYALAR))
 
-        self.fig.text(0.020, 0.478, "BOSHLANGʻICH SHART", fontsize=9.5,
+        self.fig.text(0.020, 0.482, "QARSHILIK / BOSHLANGʻICH SHART", fontsize=9.0,
                       fontweight="bold", color="#14507d")
-        ax_bs = self._ax([0.030, 0.406, 0.200, 0.060])
+        ax_q = self._ax([0.030, 0.428, 0.200, 0.046])
+        ax_q.set_facecolor("#fbfcfd")
+        self.rb_q = RadioButtons(ax_q, ["f(Re)=1+0.15Re^0.687", "Stoks  f=1"], active=0)
+        ax_bs = self._ax([0.030, 0.376, 0.200, 0.046])
         ax_bs.set_facecolor("#fbfcfd")
         self.rb_bs = RadioButtons(ax_bs, ["harakatsiz  v(0)=0", "impuls  v(0)=u"], active=0)
 
-        self.fig.text(0.020, 0.372, "KO'RINISH", fontsize=9.5,
+        self.fig.text(0.020, 0.350, "KO'RINISH", fontsize=9.5,
                       fontweight="bold", color="#14507d")
-        ax_rb = self._ax([0.030, 0.262, 0.200, 0.098])
+        ax_rb = self._ax([0.030, 0.262, 0.200, 0.080])
         ax_rb.set_facecolor("#fbfcfd")
         self.rb = RadioButtons(ax_rb, ["Tezliklar", "Traektoriya", "Taqqoslash"], active=0)
 
@@ -96,6 +100,7 @@ class Oyna:
         self.b_hisob.on_clicked(self.hisobla)
         self.rb.on_clicked(lambda l: self.hisobla(None))
         self.rb_bs.on_clicked(lambda l: self.hisobla(None))
+        self.rb_q.on_clicked(lambda l: self.hisobla(None))
         self.chk.on_clicked(lambda l: self.hisobla(None))
 
         self.natijalar = []
@@ -118,20 +123,22 @@ class Oyna:
         dt = 10 ** self.s_dt.val
 
         muhit = Muhit(ux=ux, T_muhit=Tc)
-        h = Hisoblagich(muhit)
+        q = "stoks" if self.rb_q.value_selected.startswith("Stoks") else "re"
+        h = Hisoblagich(muhit, qarshilik=q)
         frs = self._tanlangan()
 
         self.natijalar = []
         for fr in frs:
             bs = "impuls" if self.rb_bs.value_selected.startswith("impuls") else "harakatsiz"
-            n = h.hisobla(fr, T=300.0, dt=dt, H0=H0, boshlangich=bs)
+            n = h.hisobla(fr, T=min(300.0, 30000 * dt), dt=dt, H0=H0, boshlangich=bs)
             self.natijalar.append((fr, n, h))
 
         self._chiz(h, frs)
         self._matn(h, frs)
         self.status.set_text(
             f"Hisoblash yakunlandi  |  qovushqoqlik {muhit.qovushqoqlik():.3e} Pa·s  |  "
-            f"makroqadam {dt:.1e} s, kichik qadam {dt/3:.2e} s")
+            f"makroqadam {dt:.1e} s, kichik qadam {dt/3:.2e} s  |  "
+            f"iteratsiyalar {np.mean([n.iter_ortacha for _, n, _ in self.natijalar] or [0]):.2f}")
         self.fig.canvas.draw_idle()
 
     def _chiz(self, h, frs):
@@ -191,17 +198,16 @@ class Oyna:
 
     def _matn(self, h, frs):
         s = []
-        s.append(f"{'fraksiya':<13}{'tau,ms':>8}{'v_t,m/s':>10}{'t_yer,s':>9}{'x_yer,m':>9}")
-        s.append("-" * 49)
+        s.append(f"{'fraksiya':<11}{'tau,ms':>8}{'w_s,m/s':>10}{'t_yer,s':>9}{'x_yer,m':>9}")
+        s.append("-" * 47)
         for fr, n, _ in self.natijalar:
             ty = f"{n.yer_t:.1f}" if n.yer_t else ">300"
             xy = f"{n.yer_x:.0f}" if n.yer_x else "-"
-            s.append(f"{fr.nom:<13}{h.tau(fr)*1e3:>8.3f}"
+            s.append(f"{fr.nom:<11}{h.tau(fr)*1e3:>8.3f}"
                      f"{h.chokish_tezligi(fr):>10.2e}{ty:>9}{xy:>9}")
-        re_list = ", ".join(f"{fr.nom.split()[0]}: {h.reynolds(fr):.3f}"
-                            for fr, _, _ in self.natijalar)
+        re_list = ", ".join(f"{h.reynolds(fr):.2f}" for fr, _, _ in self.natijalar)
         s.append("")
-        s.append(f"Re_p -> {re_list}")
+        s.append(f"Re_s -> {re_list}")
         self.txt.set_text("\n".join(s))
 
 
